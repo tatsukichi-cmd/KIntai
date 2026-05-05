@@ -1,0 +1,15 @@
+{
+  "name": "勤怠記録",
+  "short_name": "勤怠",
+  "start_url": "/KIntai/kintai_02.html",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#F2F2F7",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/34C759/ffffff?text=勤",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
