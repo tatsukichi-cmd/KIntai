@@ -215,11 +215,20 @@ function calcDay(r){
   if(!r.in||!r.out)return null;
   const inM=toMins(r.in),outM=toMins(r.out);
   if(outM<=inM)return null;
-  // 実際に勤務した時間帯に含まれる休憩だけ差し引く
+
+  // 8時前のみ・17時以降のみの場合は休憩なし・時間外なし
+  const allBefore = outM <= WORK_START;  // 退勤が8:00以前
+  const allAfter  = inM  >= WORK_END;    // 出勤が17:00以降
+
+  if(allBefore || allAfter){
+    return{totalMins:outM-inM, otMins:0, earlyOT:0, lateOT:0, breakMins:0};
+  }
+
+  // 通常勤務をまたぐ場合：含まれる休憩だけ差し引く
   const breaks=[
-    {s:10*60,e:10*60+10},   // 10:00〜10:10
-    {s:12*60,e:12*60+45},   // 12:00〜12:45
-    {s:15*60,e:15*60+10},   // 15:00〜15:10
+    {s:10*60,   e:10*60+10}, // 10:00〜10:10
+    {s:12*60,   e:12*60+45}, // 12:00〜12:45
+    {s:15*60,   e:15*60+10}, // 15:00〜15:10
   ];
   let breakMins=0;
   breaks.forEach(b=>{
