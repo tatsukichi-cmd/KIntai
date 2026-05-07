@@ -18,8 +18,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .clock-date{font-size:13px;color:#8E8E93;text-align:center;margin-top:2px;margin-bottom:.9rem;}
 .period-badge{text-align:center;margin-bottom:.9rem;}
 .period-badge span{font-size:12px;color:#8E8E93;background:#fff;border-radius:20px;padding:4px 14px;display:inline-block;}
-/* 警告バナー */
-.warning-banner{background:#FFF3CD;border:1px solid #FFCA28;border-radius:14px;padding:.9rem 1.1rem;margin-bottom:.9rem;display:flex;align-items:center;gap:.75rem;}
+.warning-banner{background:#FFF3CD;border:1px solid #FFCA28;border-radius:14px;padding:.9rem 1.1rem;margin-bottom:.9rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;}
 .warning-icon{font-size:20px;}
 .warning-text{font-size:13px;color:#856404;font-weight:500;}
 .warning-sub{font-size:11px;color:#856404;margin-top:2px;}
@@ -32,8 +31,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .btn-out{background:#FF3B30;color:#fff;}
 .btn-in:disabled,.btn-out:disabled{opacity:.3;cursor:not-allowed;}
 .btn-in:not(:disabled):active,.btn-out:not(:disabled):active{transform:scale(.97);}
-.btn-reset{width:100%;padding:.6rem 0;border-radius:14px;font-size:14px;font-weight:500;cursor:pointer;border:0.5px solid #FF3B30;background:none;color:#FF3B30;margin-bottom:.9rem;}
+.btn-reset{width:100%;padding:.6rem 0;border-radius:14px;font-size:14px;font-weight:500;cursor:pointer;border:0.5px solid #FF3B30;background:none;color:#FF3B30;margin-bottom:.5rem;}
 .btn-reset:active{opacity:.7;}
+/* 有給ボタン */
+
 /* 時間外バナー */
 .ot-banner{border-radius:14px;padding:.85rem 1.1rem;margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between;}
 .ot-banner.zero{background:#fff;}
@@ -49,14 +50,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.9rem;}
 .stat{background:#fff;border-radius:14px;padding:.75rem 1rem;}
 .stat-label{font-size:11px;color:#8E8E93;margin-bottom:4px;}
-.stat-val{font-size:20px;font-weight:300;color:#1C1C1E;font-variant-numeric:tabular-nums;}
+.stat-val{font-size:18px;font-weight:300;color:#1C1C1E;font-variant-numeric:tabular-nums;}
 .stat-val.plus{color:#FF3B30;}
 .stat-val.minus{color:#34C759;}
-.progress-wrap{background:#fff;border-radius:14px;padding:.85rem 1rem;margin-bottom:.9rem;}
-.progress-label{display:flex;justify-content:space-between;font-size:12px;color:#8E8E93;margin-bottom:8px;}
-.progress-bar{height:6px;background:#E5E5EA;border-radius:3px;overflow:hidden;}
-.progress-fill{height:100%;border-radius:3px;background:#34C759;transition:width .4s;}
-.progress-fill.over{background:#FF3B30;}
+/* 累計バー */
+.cumulative-wrap{background:#fff;border-radius:14px;padding:.85rem 1rem;margin-bottom:.9rem;}
+.cumulative-label{display:flex;justify-content:space-between;font-size:12px;color:#8E8E93;margin-bottom:6px;}
+.cumulative-bar{height:10px;background:#E5E5EA;border-radius:5px;overflow:hidden;display:flex;}
+.bar-work{height:100%;background:#34C759;transition:width .4s;}
+.bar-leave{height:100%;background:#FF3B30;transition:width .4s;}
+.cumulative-legend{display:flex;gap:12px;margin-top:6px;font-size:11px;color:#8E8E93;}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;}
 .info-box{background:#fff;border-radius:14px;padding:.75rem 1rem;margin-bottom:.9rem;font-size:11px;color:#8E8E93;line-height:1.8;}
 .sec-title{font-size:13px;font-weight:500;color:#8E8E93;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;padding:0 2px;}
 .sec-btns{display:flex;gap:6px;}
@@ -64,15 +68,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .btn-add{font-size:13px;background:#34C759;color:#fff;border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-weight:500;}
 .record{background:#fff;border-radius:14px;padding:.75rem 1rem;margin-bottom:8px;cursor:pointer;transition:background .15s;}
 .record:active{background:#F2F2F7;}
+.record.has-leave{border-left:3px solid #FF3B30;}
 .rec-top{display:flex;justify-content:space-between;align-items:center;}
 .rec-date{font-size:13px;color:#8E8E93;}
 .rec-times{font-size:14px;color:#1C1C1E;}
 .rec-detail{font-size:11px;color:#8E8E93;margin-top:3px;display:flex;justify-content:space-between;}
+.rec-leave{font-size:11px;color:#FF3B30;margin-top:2px;}
 .rec-ot-plus{color:#FF3B30;}
 .rec-ot-minus{color:#34C759;}
 .dot-in{color:#34C759;}
 .dot-out{color:#FF3B30;}
-/* 実績タブ */
 .hist-period{background:#fff;border-radius:14px;padding:.85rem 1rem;margin-bottom:8px;cursor:pointer;}
 .hist-period.expanded{outline:1.5px solid #E5E5EA;}
 .hp-top{display:flex;justify-content:space-between;align-items:center;}
@@ -81,14 +86,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .hp-ot.zero{color:#8E8E93;}
 .hp-ot.plus{color:#FF3B30;}
 .hp-ot.minus{color:#34C759;}
-.hp-sub{font-size:11px;color:#8E8E93;margin-top:4px;display:flex;gap:12px;}
+.hp-sub{font-size:11px;color:#8E8E93;margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;}
 .hp-detail{margin-top:.75rem;border-top:0.5px solid #E5E5EA;padding-top:.75rem;display:none;}
 .hp-detail.open{display:block;}
 .hp-rec{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:0.5px solid #F2F2F7;cursor:pointer;}
 .hp-rec:last-of-type{border-bottom:none;}
-.hp-rec-date{color:#8E8E93;width:70px;}
+.hp-rec-date{color:#8E8E93;width:55px;}
 .hp-rec-work{color:#1C1C1E;flex:1;text-align:center;}
-.hp-rec-ot{width:60px;text-align:right;}
+.hp-rec-leave{color:#FF3B30;font-size:11px;text-align:center;width:55px;}
+.hp-rec-ot{width:55px;text-align:right;}
 .hp-rec-ot.plus{color:#FF3B30;}
 .hp-rec-ot.minus{color:#34C759;}
 .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:rgba(28,28,30,.85);backdrop-filter:blur(10px);border-radius:20px;padding:.6rem 1.2rem;font-size:13px;color:#fff;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:100;}
@@ -100,10 +106,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .modal-title{font-size:17px;font-weight:600;margin-bottom:1.25rem;color:#1C1C1E;text-align:center;}
 .field{background:#fff;border-radius:12px;padding:.75rem 1rem;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
 .field label{font-size:15px;color:#1C1C1E;}
-.field input{border:none;background:none;font-size:15px;color:#007AFF;text-align:right;outline:none;width:140px;}
+.field input,.field select{border:none;background:none;font-size:15px;color:#007AFF;text-align:right;outline:none;}
 .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem;}
 .modal-btns button{padding:.75rem 0;border-radius:12px;font-size:16px;cursor:pointer;border:none;background:#fff;color:#1C1C1E;font-weight:500;}
 .modal-btns .btn-save{background:#34C759;color:#fff;}
+.btn-del-yellow{margin-top:8px;width:100%;padding:.75rem 0;border-radius:12px;font-size:15px;cursor:pointer;border:none;background:#FFF3CD;color:#856404;font-weight:500;}
 .btn-del{margin-top:8px;width:100%;padding:.75rem 0;border-radius:12px;font-size:15px;cursor:pointer;border:none;background:#fff;color:#FF3B30;font-weight:500;}
 .btn-add-period{margin-top:8px;width:100%;padding:.55rem 0;border-radius:10px;font-size:13px;cursor:pointer;border:none;background:#F2F2F7;color:#34C759;font-weight:500;}
 </style>
@@ -120,7 +127,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     <div class="clock-date" id="clockDate"></div>
     <div class="period-badge"><span id="periodLabel">集計期間：--</span></div>
 
-    <!-- 退勤押し忘れ警告 -->
     <div id="warningBanner" style="display:none;" class="warning-banner">
       <div class="warning-icon">⚠️</div>
       <div>
@@ -150,14 +156,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 
     <div class="stats">
       <div class="stat"><div class="stat-label">今日の実労働時間</div><div class="stat-val" id="todayH">--</div></div>
-      <div class="stat"><div class="stat-label">今日の時間外</div><div class="stat-val" id="todayOT">--</div></div>
+      <div class="stat"><div class="stat-label">今月の時間外</div><div class="stat-val" id="todayOT">--</div></div>
       <div class="stat"><div class="stat-label">今月の出勤日数</div><div class="stat-val" id="periodDays">0日</div></div>
-      <div class="stat"><div class="stat-label">今月の総実労働時間</div><div class="stat-val" id="monthH">0h</div></div>
+      <div class="stat"><div class="stat-label">有給消化</div><div class="stat-val" id="leaveTotal" style="font-size:14px;">--</div></div>
     </div>
 
-    <div class="progress-wrap">
-      <div class="progress-label"><span>今月の進捗</span><span id="progressLabel">0 / 0h</span></div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <!-- 累計バー -->
+    <div class="cumulative-wrap">
+      <div class="cumulative-label">
+        <span>今月の累計</span>
+        <span id="cumulativeLabel">0 / 0h</span>
+      </div>
+      <div class="cumulative-bar">
+        <div class="bar-work" id="barWork" style="width:0%"></div>
+        <div class="bar-leave" id="barLeave" style="width:0%"></div>
+      </div>
+      <div class="cumulative-legend">
+        <span><span class="legend-dot" style="background:#34C759"></span>実労働</span>
+        <span><span class="legend-dot" style="background:#FF3B30"></span>有給</span>
+      </div>
     </div>
 
     <div class="info-box">
@@ -181,6 +198,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
   </div>
 </div>
 
+<!-- 編集モーダル -->
 <div class="overlay" id="editOverlay" onclick="overlayTap(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
@@ -188,10 +206,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     <div class="field"><label>日付</label><input type="date" id="editDate"></div>
     <div class="field"><label>出勤時刻</label><input type="time" id="editIn"></div>
     <div class="field"><label>退勤時刻</label><input type="time" id="editOut"></div>
+    <div class="field">
+      <label>有給</label>
+      <select id="editLeave" style="color:#007AFF;border:none;background:none;font-size:15px;outline:none;">
+        <option value="">なし</option>
+        <option value="all">全日有給</option>
+        <option value="half">半日有給</option>
+        <option value="1h">時間休1h</option>
+        <option value="2h">時間休2h</option>
+        <option value="3h">時間休3h</option>
+      </select>
+    </div>
     <div class="modal-btns">
       <button onclick="closeEdit()">キャンセル</button>
       <button class="btn-save" onclick="saveEdit()">保存</button>
     </div>
+    <button class="btn-del-yellow" id="btnCancelOut" onclick="cancelClockOut()" style="display:none;">退勤を取り消す</button>
     <button class="btn-del" id="btnDel" onclick="deleteRecord()" style="display:none;">この記録を削除</button>
   </div>
 </div>
@@ -199,12 +229,44 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ 定数 ============
 const BREAK_MINS = 65;
-const DAILY_MINS = 7 * 60 + 55; // 475分 = 7h55m
-const MONTH_WORK_DAYS = 20;
+const DAILY_MINS = 7 * 60 + 55; // 475分
 
-let records = JSON.parse(localStorage.getItem('kintai_v6') || '[]');
+// 有給の分数換算
+const LEAVE_MINS = {
+  'all': DAILY_MINS,  // 全日 = 7h55m
+  'half': 4 * 60,     // 半日 = 4h
+  '1h': 60,
+  '2h': 120,
+  '3h': 180
+};
+const LEAVE_LABEL = {
+  'all': '全日有給',
+  'half': '半日有給',
+  '1h': '時間休1h',
+  '2h': '時間休2h',
+  '3h': '時間休3h'
+};
+
+// 期間ごとの所定労働日数
+function getWorkDays(period) {
+  const map = {
+    '2026-04-21': 18,
+    '2026-05-21': 22,
+    '2026-06-21': 20,
+    '2026-07-21': 19,
+    '2026-08-21': 21,
+    '2026-09-21': 18,
+    '2026-10-21': 22,
+    '2026-11-21': 19,
+    '2026-12-21': 17,
+    '2027-01-21': 21,
+    '2027-02-21': 19,
+  };
+  return map[period.start] || 20;
+}
+
+let records = JSON.parse(localStorage.getItem('kintai_v7') || '[]');
 let editIdx = null;
 let timerInt;
 
@@ -218,11 +280,10 @@ function hm(mins){
   const a=Math.abs(Math.round(mins));
   return `${sign}${Math.floor(a/60)}h${pad(a%60)}m`;
 }
-function save(){localStorage.setItem('kintai_v6',JSON.stringify(records));}
+function save(){localStorage.setItem('kintai_v7',JSON.stringify(records));}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function getToday(){return records.find(r=>r.date===todayKey())||null;}
 
-// 20日締めの期間
 function getCurrentPeriod(){
   const now=new Date(),d=now.getDate(),y=now.getFullYear(),m=now.getMonth();
   let sY,sM,eY,eM;
@@ -245,20 +306,11 @@ function getPastPeriods(n){
 }
 function inPeriod(d,p){return d>=p.start&&d<=p.end;}
 
-// 月ラベル（「今月」表示用）
-function monthLabel(period){
-  const n=new Date();
-  const cur=getCurrentPeriod();
-  if(period.start===cur.start) return '今月';
-  return `${period.start.slice(0,7).replace('-','/')}`;
-}
-
-// 勤務時間計算（定時 = 7h55m）
+// 勤務時間計算
 function calcDay(r){
   if(!r.in||!r.out)return null;
   const inM=toMins(r.in),outM=toMins(r.out);
   if(outM<=inM)return null;
-  // 含まれる休憩だけ差し引く
   const breaks=[{s:10*60,e:10*60+10},{s:12*60,e:12*60+45},{s:15*60,e:15*60+10}];
   let bMins=0;
   breaks.forEach(b=>{
@@ -266,8 +318,30 @@ function calcDay(r){
     if(oe>os)bMins+=oe-os;
   });
   const totalMins=Math.max(0,outM-inM-bMins);
-  const otMins=totalMins-DAILY_MINS; // プラスなら時間外、マイナスなら不足
+  // 有給がある日は時間外計算スキップ
+  const otMins=r.leave?0:totalMins-DAILY_MINS;
   return{totalMins,otMins};
+}
+
+// 有給のみの日（打刻なし）の計算
+function calcLeaveOnly(r){
+  if(!r.leave||r.in)return null;
+  const leaveMins=LEAVE_MINS[r.leave]||0;
+  return{totalMins:leaveMins,otMins:0};
+}
+
+// 有給消化の集計
+function calcLeaveStats(pr){
+  let days=0, hours=0;
+  pr.forEach(r=>{
+    if(!r.leave)return;
+    if(r.leave==='all') days+=1;
+    else if(r.leave==='half') days+=0.5;
+    else if(r.leave==='1h') hours+=1;
+    else if(r.leave==='2h') hours+=2;
+    else if(r.leave==='3h') hours+=3;
+  });
+  return{days,hours};
 }
 
 function switchTab(tab){
@@ -279,7 +353,8 @@ function switchTab(tab){
 
 function clockIn(){
   if(getToday()){showToast('本日はすでに出勤済みです');return;}
-  records.push({date:todayKey(),in:nowTimeStr(),out:''});
+  const t=getToday();
+  records.push({date:todayKey(),in:nowTimeStr(),out:'',leave:''});
   records.sort((a,b)=>a.date.localeCompare(b.date));
   save();render();showToast('出勤打刻しました ✓');
 }
@@ -296,6 +371,20 @@ function resetClockIn(){
   if(idx!==-1){records.splice(idx,1);save();render();showToast('出勤打刻をリセットしました');}
 }
 
+// 有給トグル
+function toggleLeave(type){
+  let t=getToday();
+  if(!t){
+    // 打刻なしで有給のみ記録
+    t={date:todayKey(),in:'',out:'',leave:''};
+    records.push(t);
+    records.sort((a,b)=>a.date.localeCompare(b.date));
+  }
+  t.leave = t.leave===type?'':type;
+  save();render();
+  showToast(t.leave?`${LEAVE_LABEL[type]}を記録しました`:'有給を取り消しました');
+}
+
 function overlayTap(e){if(e.target===document.getElementById('editOverlay'))closeEdit();}
 function openAdd(){
   editIdx=null;
@@ -305,7 +394,9 @@ function openAdd(){
   document.getElementById('editDate').removeAttribute('max');
   document.getElementById('editIn').value='08:00';
   document.getElementById('editOut').value='17:00';
+  document.getElementById('editLeave').value='';
   document.getElementById('btnDel').style.display='none';
+  document.getElementById('btnCancelOut').style.display='none';
   document.getElementById('editOverlay').classList.add('open');
 }
 function openAddForPeriod(start,end){
@@ -316,7 +407,9 @@ function openAddForPeriod(start,end){
   document.getElementById('editDate').max=end;
   document.getElementById('editIn').value='08:00';
   document.getElementById('editOut').value='17:00';
+  document.getElementById('editLeave').value='';
   document.getElementById('btnDel').style.display='none';
+  document.getElementById('btnCancelOut').style.display='none';
   document.getElementById('editOverlay').classList.add('open');
 }
 function openEdit(idx){
@@ -327,7 +420,9 @@ function openEdit(idx){
   document.getElementById('editDate').removeAttribute('max');
   document.getElementById('editIn').value=r.in||'';
   document.getElementById('editOut').value=r.out||'';
+  document.getElementById('editLeave').value=r.leave||'';
   document.getElementById('btnDel').style.display='block';
+  document.getElementById('btnCancelOut').style.display=r.out?'block':'none';
   document.getElementById('editOverlay').classList.add('open');
 }
 function closeEdit(){document.getElementById('editOverlay').classList.remove('open');editIdx=null;}
@@ -335,17 +430,23 @@ function saveEdit(){
   const date=document.getElementById('editDate').value;
   const inT=document.getElementById('editIn').value;
   const outT=document.getElementById('editOut').value;
-  if(!date||!inT){showToast('日付と出勤時刻は必須です');return;}
-  if(outT&&inT>=outT){showToast('退勤は出勤より後にしてください');return;}
+  const leave=document.getElementById('editLeave').value;
+  if(!date){showToast('日付は必須です');return;}
+  if(inT&&outT&&inT>=outT){showToast('退勤は出勤より後にしてください');return;}
   if(editIdx===null){
     if(records.find(r=>r.date===date)){showToast('その日付の記録がすでにあります');return;}
-    records.push({date,in:inT,out:outT});
+    records.push({date,in:inT,out:outT,leave});
   } else {
-    records[editIdx]={date,in:inT,out:outT};
+    records[editIdx]={date,in:inT,out:outT,leave};
   }
   records.sort((a,b)=>a.date.localeCompare(b.date));
   save();render();closeEdit();
   showToast(editIdx===null?'記録を追加しました ✓':'記録を更新しました ✓');
+}
+function cancelClockOut(){
+  if(!confirm('退勤打刻を取り消しますか？'))return;
+  records[editIdx].out='';
+  save();render();closeEdit();showToast('退勤打刻を取り消しました');
 }
 function deleteRecord(){
   if(!confirm('この記録を削除しますか？'))return;
@@ -356,11 +457,11 @@ function downloadCSV(){
   const p=getCurrentPeriod();
   const pr=records.filter(r=>inPeriod(r.date,p));
   if(!pr.length){showToast('今月の記録がありません');return;}
-  let csv='\uFEFF日付,出勤,退勤,実労働時間(分),時間外(分)\n';
+  let csv='\uFEFF日付,出勤,退勤,実労働時間(分),時間外(分),有給\n';
   let tw=0,tot=0;
   pr.forEach(r=>{
-    const c=calcDay(r);
-    csv+=`${r.date},${r.in||''},${r.out||''},${c?c.totalMins:''},${c?c.otMins:''}\n`;
+    const c=r.in?calcDay(r):calcLeaveOnly(r);
+    csv+=`${r.date},${r.in||''},${r.out||''},${c?c.totalMins:''},${c?c.otMins:''},${r.leave?LEAVE_LABEL[r.leave]:''}\n`;
     if(c){tw+=c.totalMins;tot+=c.otMins;}
   });
   csv+=`\n合計,,,${tw},${tot}\n`;
@@ -372,39 +473,26 @@ function downloadCSV(){
 
 function updateOTBanner(){
   const p=getCurrentPeriod();
-  const pr=records.filter(r=>inPeriod(r.date,p));
+  const yesterday=yesterdayKey();
+  const prYesterday=records.filter(r=>inPeriod(r.date,p)&&r.date<=yesterday);
   let tot=0;
-  pr.forEach(r=>{const c=calcDay(r);if(c)tot+=c.otMins;});
-  // 勤務中のリアルタイム分も加算
-  const t=getToday();
-  if(t&&t.in&&!t.out){
-    const n=new Date(),inM=toMins(t.in),nowM=n.getHours()*60+n.getMinutes();
-    const breaks=[{s:10*60,e:10*60+10},{s:12*60,e:12*60+45},{s:15*60,e:15*60+10}];
-    let bMins=0;
-    breaks.forEach(b=>{const os=Math.max(inM,b.s),oe=Math.min(nowM,b.e);if(oe>os)bMins+=oe-os;});
-    const todayMins=Math.max(0,nowM-inM-bMins);
-    tot+=todayMins-DAILY_MINS;
-  }
+  prYesterday.forEach(r=>{
+    const c=r.in?calcDay(r):calcLeaveOnly(r);
+    if(c)tot+=c.otMins;
+  });
   const banner=document.getElementById('otBanner');
   const label=document.getElementById('otLabel');
-  const sub=document.getElementById('otSub');
   const val=document.getElementById('otValue');
   val.textContent=hm(tot);
   if(tot>0){
-    banner.className='ot-banner plus';
-    label.className='ot-left plus';
-    val.className='ot-right plus';
+    banner.className='ot-banner plus';label.className='ot-left plus';val.className='ot-right plus';
   } else if(tot<0){
-    banner.className='ot-banner minus';
-    label.className='ot-left minus';
-    val.className='ot-right minus';
+    banner.className='ot-banner minus';label.className='ot-left minus';val.className='ot-right minus';
   } else {
-    banner.className='ot-banner zero';
-    label.className='ot-left';
-    val.className='ot-right';
+    banner.className='ot-banner zero';label.className='ot-left';val.className='ot-right';
   }
   const p2=getCurrentPeriod();
-  sub.textContent=`${p2.start.slice(5).replace('-','/')} 〜 ${p2.end.slice(5).replace('-','/')}`;
+  document.getElementById('otSub').textContent=`${p2.start.slice(5).replace('-','/')} 〜 ${p2.end.slice(5).replace('-','/')} 前日まで`;
 }
 
 function updateClock(){
@@ -419,16 +507,10 @@ function updateClock(){
     breaks.forEach(b=>{const os=Math.max(inM,b.s),oe=Math.min(nowM,b.e);if(oe>os)bMins+=oe-os;});
     const elapsed=Math.max(0,nowM-inM-bMins);
     document.getElementById('todayH').textContent=hm(elapsed);
-    const ot=elapsed-DAILY_MINS;
-    const otEl=document.getElementById('todayOT');
-    otEl.textContent=hm(ot);
-    otEl.className='stat-val'+(ot>0?' plus':ot<0?' minus':'');
-    updateOTBanner();
   }
 }
 
 function checkWarning(){
-  // 昨日の退勤押し忘れチェック
   const yesterday=yesterdayKey();
   const yRec=records.find(r=>r.date===yesterday);
   const banner=document.getElementById('warningBanner');
@@ -445,24 +527,27 @@ function renderHistory(){
   const periods=[getCurrentPeriod(),...getPastPeriods(12)];
   const container=document.getElementById('histPeriods');container.innerHTML='';
   periods.forEach((period,pi)=>{
-    // 昇順（古い順）でフィルタ
     const pr=records.filter(r=>inPeriod(r.date,period));
     let tw=0,tot=0;
-    pr.forEach(r=>{const c=calcDay(r);if(c){tw+=c.totalMins;tot+=c.otMins;}});
+    pr.forEach(r=>{const c=r.in?calcDay(r):calcLeaveOnly(r);if(c){tw+=c.totalMins;tot+=c.otMins;}});
+    const ls=calcLeaveStats(pr);
     const otClass=tot>0?'plus':tot<0?'minus':'zero';
     const label=pi===0?`今月（${period.start.slice(5).replace('-','/')}〜${period.end.slice(5).replace('-','/')}）`
       :`${period.start.slice(0,7).replace('-','/')}（${period.start.slice(5).replace('-','/')}〜${period.end.slice(5).replace('-','/')}）`;
+    const leaveStr=ls.days>0||ls.hours>0?`有給 ${ls.days>0?ls.days+'日':''}${ls.hours>0?' '+ls.hours+'h':''}`.trim():'';
     const div=document.createElement('div');div.className='hist-period';
     div.innerHTML=`<div class="hp-top"><div class="hp-label">${label}</div><div class="hp-ot ${otClass}">${hm(tot)}</div></div>
-      <div class="hp-sub"><span>出勤 ${pr.length}日</span><span>実労働 ${hm(tw)}</span><span>時間外 ${hm(tot)}</span></div>
+      <div class="hp-sub"><span>出勤 ${pr.filter(r=>r.in).length}日</span><span>実労働 ${hm(tw)}</span><span>時間外 ${hm(tot)}</span>${leaveStr?`<span style="color:#FF3B30">${leaveStr}</span>`:''}</div>
       <div class="hp-detail" id="det-${pi}">
         ${pr.length===0?'<div style="font-size:12px;color:#8E8E93;padding:6px 0">記録なし</div>':
           pr.map(r=>{
-            const idx=records.indexOf(r);const c=calcDay(r);
+            const idx=records.indexOf(r);const c=r.in?calcDay(r):calcLeaveOnly(r);
             const otClass2=c&&c.otMins>0?'plus':c&&c.otMins<0?'minus':'';
+            const leaveTag=r.leave?`<span style="color:#FF3B30;font-size:10px">${LEAVE_LABEL[r.leave]}</span>`:'';
             return `<div class="hp-rec" onclick="openEdit(${idx})">
               <span class="hp-rec-date">${r.date.slice(5).replace('-','/')}</span>
-              <span class="hp-rec-work">${r.in||'--'}→${r.out||'--'} ${c?hm(c.totalMins):'--'}</span>
+              <span class="hp-rec-work">${r.in?r.in:'--'}→${r.out?r.out:'--'} ${c?hm(c.totalMins):'--'}</span>
+              <span class="hp-rec-leave">${r.leave?LEAVE_LABEL[r.leave].replace('有給','').replace('時間休',''):''}</span>
               <span class="hp-rec-ot ${otClass2}">${c?hm(c.otMins):''}</span>
             </div>`;
           }).join('')}
@@ -481,64 +566,79 @@ function render(){
   const btnOut=document.getElementById('btnOut');
   const btnReset=document.getElementById('btnReset');
 
-  // 期間ラベル
   document.getElementById('periodLabel').textContent=`${p.start.slice(5).replace('-','/')} 〜 ${p.end.slice(5).replace('-','/')}`;
-
-  // 退勤押し忘れチェック
   checkWarning();
 
   if(!t){
     document.getElementById('statusText').textContent='未打刻';
     btnIn.disabled=false;btnOut.disabled=true;btnReset.style.display='none';
     document.getElementById('todayH').textContent='--';
-    document.getElementById('todayOT').textContent='--';
-    document.getElementById('todayOT').className='stat-val';
   } else if(t.in&&!t.out){
     document.getElementById('statusText').textContent=`勤務中（出勤 ${t.in}）`;
-    btnIn.disabled=true;btnOut.disabled=false;
-    btnReset.style.display='block';
-  } else {
+    btnIn.disabled=true;btnOut.disabled=false;btnReset.style.display='block';
+  } else if(t.in&&t.out){
     const c=calcDay(t);
     document.getElementById('statusText').textContent=`退勤済（${t.in} → ${t.out}）`;
-    if(c){
-      document.getElementById('todayH').textContent=hm(c.totalMins);
-      const otEl=document.getElementById('todayOT');
-      otEl.textContent=hm(c.otMins);
-      otEl.className='stat-val'+(c.otMins>0?' plus':c.otMins<0?' minus':'');
-    }
+    if(c) document.getElementById('todayH').textContent=hm(c.totalMins);
     btnIn.disabled=true;btnOut.disabled=true;btnReset.style.display='none';
+  } else {
+    document.getElementById('statusText').textContent=t.leave?`有給取得（${LEAVE_LABEL[t.leave]}）`:'未打刻';
+    btnIn.disabled=false;btnOut.disabled=true;btnReset.style.display='none';
   }
 
-  // 今月の集計（昇順）
+  // 今月の集計
   const pr=records.filter(r=>inPeriod(r.date,p));
-  let tw=0,tot=0;
-  pr.forEach(r=>{const c=calcDay(r);if(c){tw+=c.totalMins;tot+=c.otMins;}});
-  document.getElementById('periodDays').textContent=pr.length+'日';
-  document.getElementById('monthH').textContent=hm(tw);
+  let tw=0,tot=0,leaveMinsTotal=0;
+  pr.forEach(r=>{
+    const c=r.in?calcDay(r):calcLeaveOnly(r);
+    if(c){tw+=c.totalMins;tot+=c.otMins;}
+    if(r.leave) leaveMinsTotal+=LEAVE_MINS[r.leave]||0;
+  });
+  document.getElementById('periodDays').textContent=pr.filter(r=>r.in).length+'日';
 
-  // プログレスバー
-  const target=DAILY_MINS*MONTH_WORK_DAYS;
-  const pct=target>0?Math.min((tw/target)*100,120):0;
-  const fill=document.getElementById('progressFill');
-  fill.style.width=Math.min(pct,100)+'%';
-  fill.className='progress-fill'+(pct>100?' over':'');
-  document.getElementById('progressLabel').textContent=`${hm(tw)} / ${hm(target)}`;
+  // 有給消化
+  const ls=calcLeaveStats(pr);
+  const leaveStr=[];
+  if(ls.days>0) leaveStr.push(ls.days+'日');
+  if(ls.hours>0) leaveStr.push(ls.hours+'h');
+  document.getElementById('leaveTotal').textContent=leaveStr.length?leaveStr.join(' / '):'0日';
+
+  // 今月の時間外（前日まで）
+  const yesterday=yesterdayKey();
+  const prY=pr.filter(r=>r.date<=yesterday);
+  let totY=0;
+  prY.forEach(r=>{const c=r.in?calcDay(r):calcLeaveOnly(r);if(c)totY+=c.otMins;});
+  const otEl=document.getElementById('todayOT');
+  otEl.textContent=hm(totY);
+  otEl.className='stat-val'+(totY>0?' plus':totY<0?' minus':'');
+
+  // 累計バー
+  const target=DAILY_MINS*getWorkDays(p);
+  const workPct=target>0?Math.min((tw/target)*100,100):0;
+  const leavePct=target>0?Math.min((leaveMinsTotal/target)*100,100-workPct):0;
+  document.getElementById('barWork').style.width=workPct+'%';
+  document.getElementById('barLeave').style.width=leavePct+'%';
+  document.getElementById('cumulativeLabel').textContent=`${hm(tw+leaveMinsTotal)} / ${hm(target)}`;
 
   updateOTBanner();
 
-  // 記録一覧（昇順 = 21日が一番上）
+  // 記録一覧（昇順）
   const list=document.getElementById('historyList');list.innerHTML='';
   pr.forEach(r=>{
-    const idx=records.indexOf(r),c=calcDay(r);
+    const idx=records.indexOf(r);
+    const c=r.in?calcDay(r):calcLeaveOnly(r);
     const ws=c?hm(c.totalMins):(r.out?'--':'退勤未打刻');
     const otClass=c&&c.otMins>0?'rec-ot-plus':c&&c.otMins<0?'rec-ot-minus':'';
     const otStr=c?`<span class="${otClass}">${hm(c.otMins)}</span>`:'';
-    list.innerHTML+=`<div class="record" onclick="openEdit(${idx})">
+    const leaveStr=r.leave?`<div class="rec-leave">🟡 ${LEAVE_LABEL[r.leave]}</div>`:'';
+    const hasLeave=r.leave?'has-leave':'';
+    list.innerHTML+=`<div class="record ${hasLeave}" onclick="openEdit(${idx})">
       <div class="rec-top">
         <span class="rec-date">${r.date}</span>
         <span class="rec-times"><span class="dot-in">●</span>${r.in||'--'}&nbsp;<span class="dot-out">●</span>${r.out||'--'}</span>
       </div>
       <div class="rec-detail"><span>実労働時間 ${ws}</span>${otStr}</div>
+      ${leaveStr}
     </div>`;
   });
 }
