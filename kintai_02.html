@@ -624,7 +624,7 @@ function render(){
 
   // 記録一覧（昇順）
   const list=document.getElementById('historyList');list.innerHTML='';
-  pr.forEach(r=>{
+  [...pr].reverse().forEach(r=>{
     const idx=records.indexOf(r);
     const c=r.in?calcDay(r):calcLeaveOnly(r);
     const ws=c?hm(c.totalMins):(r.out?'--':'退勤未打刻');
