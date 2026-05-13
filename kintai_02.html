@@ -457,14 +457,14 @@ function downloadCSV(){
   const p=getCurrentPeriod();
   const pr=records.filter(r=>inPeriod(r.date,p));
   if(!pr.length){showToast('今月の記録がありません');return;}
-  let csv='\uFEFF日付,出勤,退勤,実労働時間(分),時間外(分),有給\n';
+  let csv='\uFEFF日付,出勤,退勤,実労働時間,時間外,有給\n';
   let tw=0,tot=0;
   pr.forEach(r=>{
     const c=r.in?calcDay(r):calcLeaveOnly(r);
-    csv+=`${r.date},${r.in||''},${r.out||''},${c?c.totalMins:''},${c?c.otMins:''},${r.leave?LEAVE_LABEL[r.leave]:''}\n`;
+    csv+=`${r.date},${r.in||''},${r.out||''},${c?hm(c.totalMins):''},${c?hm(c.otMins):''},${r.leave?LEAVE_LABEL[r.leave]:''}\n`;
     if(c){tw+=c.totalMins;tot+=c.otMins;}
   });
-  csv+=`\n合計,,,${tw},${tot}\n`;
+  csv+=`\n合計,,,${hm(tw)},${hm(tot)}\n`;
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download=`勤怠_${p.start.slice(0,7)}.csv`;a.click();
