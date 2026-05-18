@@ -280,6 +280,11 @@ function hm(mins){
   const a=Math.abs(Math.round(mins));
   return `${sign}${Math.floor(a/60)}h${pad(a%60)}m`;
 }
+function hmExcel(mins){
+  const sign=mins<0?'-':'';
+  const a=Math.abs(Math.round(mins));
+  return `${sign}${Math.floor(a/60)}:${pad(a%60)}`;
+}
 function save(){localStorage.setItem('kintai_v7',JSON.stringify(records));}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function getToday(){return records.find(r=>r.date===todayKey())||null;}
@@ -461,10 +466,10 @@ function downloadCSV(){
   let tw=0,tot=0;
   pr.forEach(r=>{
     const c=r.in?calcDay(r):calcLeaveOnly(r);
-    csv+=`${r.date},${r.in||''},${r.out||''},${c?hm(c.totalMins):''},${c?hm(c.otMins):''},${r.leave?LEAVE_LABEL[r.leave]:''}\n`;
+    csv+=`${r.date},${r.in||''},${r.out||''},${c?hmExcel(c.totalMins):''},${c?hmExcel(c.otMins):''},${r.leave?LEAVE_LABEL[r.leave]:''}\n`;
     if(c){tw+=c.totalMins;tot+=c.otMins;}
   });
-  csv+=`\n合計,,,${hm(tw)},${hm(tot)}\n`;
+  csv+=`\n合計,,,${hmExcel(tw)},${hmExcel(tot)}\n`;
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download=`勤怠_${p.start.slice(0,7)}.csv`;a.click();
