@@ -729,11 +729,12 @@ function calcDay(r, wtype){
   const breaks=[{s:10*60,e:10*60+10},{s:12*60,e:12*60+45},{s:15*60,e:15*60+10}];
   let bMins=0;
   breaks.forEach(b=>{const os=Math.max(inM,b.s),oe=Math.min(outM,b.e);if(oe>os)bMins+=oe-os;});
+  const leaveMinutes={'all':475,'half':240,'1h':60,'2h':120,'3h':180}[r.leave]||0;
 
   if(type==='flex'){
-    // フレックス：実労働 - 7h55m
+    // フレックス：実労働 + 有給時間 - 7h55m
     const totalMins=Math.max(0,outM-inM-bMins);
-    const otMins=totalMins-(7*60+55);
+    const otMins=Math.max(0,totalMins+leaveMinutes-(7*60+55));
     return{totalMins,otMins};
   } else {
     // 一般：8時からカウント、17:10以降30分単位切り捨て
