@@ -458,8 +458,8 @@ function deleteRecord(){
   records.splice(editIdx,1);save();render();closeEdit();showToast('削除しました');
 }
 
-function downloadCSV(){
-  const p=getCurrentPeriod();
+function downloadCSV(p){
+  if(!p) p=getCurrentPeriod();
   const pr=records.filter(r=>inPeriod(r.date,p));
   if(!pr.length){showToast('今月の記録がありません');return;}
   let csv='\uFEFF日付,出勤,退勤,実労働時間,時間外,有給\n';
@@ -556,7 +556,10 @@ function renderHistory(){
               <span class="hp-rec-ot ${otClass2}">${c?hm(c.otMins):''}</span>
             </div>`;
           }).join('')}
-        <button class="btn-add-period" onclick="openAddForPeriod('${period.start}','${period.end}')">＋ この月に追加</button>
+       <div style="display:flex;gap:6px;margin-top:8px;">
+  <button class="btn-add-period" style="flex:1;margin-top:0;" onclick="openAddForPeriod('${period.start}','${period.end}')">＋ この月に追加</button>
+  <button class="btn-sm" style="background:#F2F2F7;flex-shrink:0;" onclick="downloadCSV({start:'${period.start}',end:'${period.end}'})">📥 CSV</button>
+</div>
       </div>`;
     div.querySelector('.hp-top').addEventListener('click',()=>{
       const d=document.getElementById(`det-${pi}`);d.classList.toggle('open');div.classList.toggle('expanded',d.classList.contains('open'));
