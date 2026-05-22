@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -559,6 +560,7 @@ function renderHistory(){
        <div style="display:flex;gap:6px;margin-top:8px;">
   <button class="btn-add-period" style="flex:1;margin-top:0;" onclick="openAddForPeriod('${period.start}','${period.end}')">＋ この月に追加</button>
   <button class="btn-sm" style="background:#F2F2F7;flex-shrink:0;" onclick="downloadCSV({start:'${period.start}',end:'${period.end}'})">📥 CSV</button>
+<button class="btn-sm" style="background:#F2F2F7;flex-shrink:0;color:#34C759;" onclick="downloadExcel({start:'${period.start}',end:'${period.end}'})">📊 Excel</button>
 </div>
       </div>`;
     div.querySelector('.hp-top').addEventListener('click',()=>{
@@ -655,6 +657,88 @@ render();
 clearInterval(timerInt);
 timerInt=setInterval(updateClock,1000);
 updateClock();
+const HOLIDAYS = [
+  '2026-05-03','2026-05-04','2026-05-05',
+  '2026-07-20','2026-08-11',
+  '2026-09-21','2026-09-23',
+  '2026-10-12',
+  '2026-11-03','2026-11-23',
+  '2026-12-23',
+  '2027-01-01','2027-01-11',
+  '2027-02-11','2027-02-23',
+  '2027-03-20',
+  '2026-08-12','2026-08-13','2026-08-14',
+  '2026-12-29','2026-12-30',
+  '2027-01-04'
+];
+
+function isHoliday(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const dow=d.getDay();
+  if(dow===0||dow===6)return true;
+  return HOLIDAYS.includes(dateStr);
+}
+
+function downloadExcel(p){
+  if(!p)p=getCurrentPeriod();
+  const pr=records.filter(r=>inPeriod(r.date,p));
+  const userName2=localStorage.getItem('kintai_name')||'';
+  const dateList=[];
+  const start=new Date(p.start+'T00:00:00');
+  const end=new Date(p.end+'T00:00:00');
+  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+    dateList.push(d.toISOString().slice(0,10));
+  }
+  const months={};
+  dateList.forEach(date=>{
+    const m=date.slice(0,7);
+    if(!months[m])months[m]=[];
+    months[m].push(date);
+  });
+  const XL=window.XLSX;
+  const wb=XL.utils.book_new();
+  const ws_data=[];
+  ws_data.push(['','勤　務　表','','','','','','','','','']);
+  ws_data.push(['','','','','','','',userName2+'　さん','','記入用','']);
+  ws_data.push(['','','','','出勤時間','退勤時間','休憩時間','','','勤務時間合計','通常勤務時間']);
+  ws_data.push(['','','','','','','午前','昼','午後','','']);
+  let dataStartRow=5,rowIdx=5;
+  Object.keys(months).sort().forEach(month=>{
+    const dates=months[month];
+    const monthLabel=parseInt(month.slice(5))+'月';
+    dates.forEach((date,i)=>{
+      const rec=pr.find(r=>r.date===date);
+      const dayLabel=parseInt(date.slice(8))+'日';
+      const holiday=isHoliday(date);
+      const hasRecord=rec&&rec.in;
+      ws_data.push([
+        '',
+        i===0?monthLabel:'',
+        dayLabel,
+        (!holiday&&hasRecord)?1:'',
+        hasRecord?rec.in:'',
+        hasRecord&&rec.out?rec.out:'',
+        holiday?'':'0:10',
+        holiday?'':'0:45',
+        holiday?'':'0:10',
+        `=F${rowIdx}-E${rowIdx}-G${rowIdx}-H${rowIdx}-I${rowIdx}`,
+        ''
+      ]);
+      rowIdx++;
+    });
+  });
+  const totalRows=rowIdx-1;
+  ws_data.push(['','','','','','','①実労働時間合計','','',`=SUM(J${dataStartRow}:J${totalRows})`,'','自動計算',`=I${rowIdx+1}*475/60`]);
+  ws_data.push(['','','','','','','②法定労働時間合計','',`=SUM(D${dataStartRow}:D${totalRows})`,'','','時間換算',`=ROUNDDOWN(M${rowIdx},0)`]);
+  ws_data.push(['','','','','','','法定外労働時間合計','','①-②',`=J${rowIdx}-J${rowIdx+1}`,'','端数',`=M${rowIdx}-M${rowIdx+1}`]);
+  ws_data.push(['','','','','','','','','','','','分換算',`=60*M${rowIdx+2}`]);
+  const ws=XL.utils.aoa_to_sheet(ws_data);
+  ws['!cols']=[{wch:4},{wch:7},{wch:6},{wch:4},{wch:11},{wch:11},{wch:6},{wch:6},{wch:6},{wch:13},{wch:13},{wch:9},{wch:13}];
+  XL.utils.book_append_sheet(wb,ws,'勤務表');
+  const periodLabel=p.end.slice(0,7).replace('-','');
+  XL.writeFile(wb,`勤務表_${userName2}_${periodLabel}.xlsx`);
+  showToast('Excelをダウンロードしました');
+}
 </script>
 </body>
 </html>
