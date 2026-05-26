@@ -256,10 +256,12 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
       <select id="editLeave" style="color:#007AFF;border:none;background:none;font-size:15px;outline:none;">
         <option value="">なし</option>
         <option value="all">全日有給</option>
-        <option value="half">半日有給</option>
+        <option value="half_am">午前半休</option>
+        <option value="half_pm">午後半休</option>
         <option value="1h">時間休1h</option>
         <option value="2h">時間休2h</option>
-        <option value="3h">時間休3h</option>
+        <option value="3h_am">時間休3h（午前）</option>
+        <option value="3h_pm">時間休3h（午後）</option>
       </select>
     </div>
     <div class="modal-btns">
@@ -280,14 +282,22 @@ const DAILY_MINS = 7 * 60 + 55; // 475分
 // 有給の分数換算
 const LEAVE_MINS = {
   'all': DAILY_MINS,  // 全日 = 7h55m
-  'half': 4 * 60,     // 半日 = 4h
+  'half_am': 4 * 60,
+  'half_pm': 4 * 60,
+  '3h_am': 180,
+  '3h_pm': 180,
   '1h': 60,
   '2h': 120,
   '3h': 180
 };
 const LEAVE_LABEL = {
   'all': '全日有給',
-  'half': '半日有給',
+  'half_am': '午前半休',
+  'half_pm': '午後半休',
+  '1h': '時間休1h',
+  '2h': '時間休2h',
+  '3h_am': '時間休3h(午前)',
+  '3h_pm': '時間休3h(午後)',
   '1h': '時間休1h',
   '2h': '時間休2h',
   '3h': '時間休3h'
@@ -386,10 +396,10 @@ function calcLeaveStats(pr){
   pr.forEach(r=>{
     if(!r.leave)return;
     if(r.leave==='all') days+=1;
-    else if(r.leave==='half') days+=0.5;
+    else if(r.leave==='half_am'||r.leave==='half_pm') days+=0.5;
     else if(r.leave==='1h') hours+=1;
     else if(r.leave==='2h') hours+=2;
-    else if(r.leave==='3h') hours+=3;
+    else if(r.leave==='3h_am'||r.leave==='3h_pm') hours+=3;
   });
   return{days,hours};
 }
@@ -507,17 +517,26 @@ function downloadCSV(p){
   if(!p) p=getCurrentPeriod();
   const pr=records.filter(r=>inPeriod(r.date,p));
   if(!pr.length){showToast('今月の記録がありません');return;}
-  let csv='\uFEFF日付,出勤,退勤,実労働時間,時間外,有給\n';
-  let tw=0,tot=0;
+  let csv='\uFEFF日付,月,日,稼働,出勤,退勤,休憩(午前),休憩(昼),休憩(午後),有給\n';
   pr.forEach(r=>{
-    const c=r.in?calcDay(r):calcLeaveOnly(r);
-    csv+=`${r.date},${r.in||''},${r.out||''},${c?hmExcel(c.totalMins):''},${c?hmExcel(c.otMins):''},${r.leave?LEAVE_LABEL[r.leave]:''}\n`;
-    if(c){tw+=c.totalMins;tot+=c.otMins;}
+    const holiday=isHoliday(r.date);
+    const hasRecord=r.in;
+    const leave=r.leave||'';
+    let bAm='0:10',bLunch='0:45',bPm='0:10';
+    if(holiday||(!hasRecord&&!leave)){bAm='';bLunch='';bPm='';}
+    else if(leave==='all'){bAm='';bLunch='';bPm='';}
+    else if(leave==='half_am'){bAm='';bLunch='';bPm='0:10';}
+    else if(leave==='half_pm'){bAm='0:10';bLunch='';bPm='';}
+    else if(leave==='3h_am'){bAm='';bLunch='0:45';bPm='0:10';}
+    else if(leave==='3h_pm'){bAm='0:10';bLunch='0:45';bPm='';}
+    const dFlag=(!holiday&&(hasRecord||(leave&&leave!=='all')))?1:'';
+    const month=parseInt(r.date.slice(5,7))+'月';
+    const day=parseInt(r.date.slice(8))+'日';
+    csv+=`${r.date},${month},${day},${dFlag},${r.in||''},${r.out||''},${bAm},${bLunch},${bPm},${leave?LEAVE_LABEL[leave]:''}\n`;
   });
-  csv+=`\n合計,,,${hmExcel(tw)},${hmExcel(tot)}\n`;
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download=`勤怠_${p.end.slice(0,7)}.csv`;a.click();
+  a.download=`勤務表_${p.end.slice(0,7)}.csv`;a.click();
   showToast('CSVをダウンロードしました');
 }
 
@@ -755,16 +774,32 @@ function downloadExcel(p){
       const dayLabel=parseInt(date.slice(8))+'日';
       const holiday=isHoliday(date);
       const hasRecord=rec&&rec.in;
+      const leave=rec?rec.leave||'':'';
+      // 休憩時間の決定
+      let bAm='0:10', bLunch='0:45', bPm='0:10';
+      if(holiday||(!hasRecord&&!leave)){
+        bAm=''; bLunch=''; bPm='';
+      } else if(leave==='all'){
+        bAm=''; bLunch=''; bPm='';
+      } else if(leave==='half_am'){
+        bAm=''; bLunch=''; bPm='0:10';
+      } else if(leave==='half_pm'){
+        bAm='0:10'; bLunch=''; bPm='';
+      } else if(leave==='3h_am'){
+        bAm=''; bLunch='0:45'; bPm='0:10';
+      } else if(leave==='3h_pm'){
+        bAm='0:10'; bLunch='0:45'; bPm='';
+      }
+      // D列（稼働フラグ）：全休・休日以外は1
+      const dFlag=(!holiday&&(hasRecord||(leave&&leave!=='all')))?1:'';
       ws_data.push([
         '',
         i===0?monthLabel:'',
         dayLabel,
-        (!holiday&&hasRecord)?1:'',
+        dFlag,
         hasRecord?rec.in:'',
         hasRecord&&rec.out?rec.out:'',
-        holiday?'':'0:10',
-        holiday?'':'0:45',
-        holiday?'':'0:10',
+        bAm, bLunch, bPm,
         `=F${rowIdx}-E${rowIdx}-G${rowIdx}-H${rowIdx}-I${rowIdx}`,
         ''
       ]);
