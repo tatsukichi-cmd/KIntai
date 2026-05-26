@@ -168,6 +168,10 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
   </div>
 
   <div id="tabToday">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;padding:0 2px;">
+      <span id="displayName" style="font-size:14px;color:var(--text-sub);" onclick="openNameSetting()"></span>
+      <button onclick="openNameSetting()" style="font-size:11px;background:var(--surface2);border:1px solid var(--glass-border);border-radius:8px;padding:4px 10px;cursor:pointer;color:var(--text-sub);font-family:inherit;">名前設定</button>
+    </div>
     <div class="clock-time" id="clockTime">--:--:--</div>
     <div class="clock-date" id="clockDate"></div>
     <div class="period-badge"><span id="periodLabel">集計期間：--</span></div>
@@ -240,6 +244,22 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
   <div id="tabHistory" style="display:none;">
     <div class="sec-title"><span>過去12ヶ月の実績</span></div>
     <div id="histPeriods"></div>
+  </div>
+</div>
+
+<!-- 名前設定モーダル -->
+<div class="overlay" id="nameOverlay" onclick="if(event.target===this)closeNameSetting()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">名前設定</div>
+    <div class="field">
+      <label>名前</label>
+      <input type="text" id="nameInput" placeholder="例：鈴木 辰也" style="border:none;background:none;font-size:15px;color:#7c6ef7;text-align:right;outline:none;font-family:inherit;width:60%;">
+    </div>
+    <div class="modal-btns">
+      <button onclick="closeNameSetting()">キャンセル</button>
+      <button class="btn-save" onclick="saveName()">保存</button>
+    </div>
   </div>
 </div>
 
@@ -342,6 +362,23 @@ function hmExcel(mins){
 }
 function save(){localStorage.setItem('kintai_v7',JSON.stringify(records));}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function openNameSetting(){
+  document.getElementById('nameInput').value=localStorage.getItem('kintai_name')||'';
+  document.getElementById('nameOverlay').classList.add('open');
+}
+function closeNameSetting(){document.getElementById('nameOverlay').classList.remove('open');}
+function saveName(){
+  const name=document.getElementById('nameInput').value.trim();
+  localStorage.setItem('kintai_name',name);
+  updateDisplayName();
+  closeNameSetting();
+  showToast('名前を保存しました ✓');
+}
+function updateDisplayName(){
+  const name=localStorage.getItem('kintai_name')||'';
+  const el=document.getElementById('displayName');
+  if(el) el.textContent=name?`${name} さん`:'（名前未設定）';
+}
 function getToday(){return records.find(r=>r.date===todayKey())||null;}
 
 function getCurrentPeriod(){
@@ -717,6 +754,7 @@ function render(){
 }
 
 render();
+updateDisplayName();
 clearInterval(timerInt);
 timerInt=setInterval(updateClock,1000);
 updateClock();
@@ -745,11 +783,20 @@ function isHoliday(dateStr){
 async function downloadExcel(p){
   if(!p)p=getCurrentPeriod();
   const pr=records.filter(r=>inPeriod(r.date,p));
-  const userName2=localStorage.getItem('kintai_name')||'';
+  const userName2=localStorage.getItem('kintai_name')||localStorage.getItem('kintai_user')||'';
 
   const dateList=[];
-  for(let d=new Date(p.start+'T00:00:00');d<=new Date(p.end+'T00:00:00');d.setDate(d.getDate()+1))
-    dateList.push(d.toISOString().slice(0,10));
+  // タイムゾーンずれ防止：文字列で日付を生成
+  function addDays(dateStr,n){
+    const d=new Date(dateStr+'T12:00:00');
+    d.setDate(d.getDate()+n);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  let cur=p.start;
+  while(cur<=p.end){
+    dateList.push(cur);
+    cur=addDays(cur,1);
+  }
 
   const months={};
   dateList.forEach(date=>{const m=date.slice(0,7);if(!months[m])months[m]=[];months[m].push(date);});
