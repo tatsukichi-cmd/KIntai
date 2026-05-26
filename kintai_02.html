@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -742,80 +742,180 @@ function isHoliday(dateStr){
   return HOLIDAYS.includes(dateStr);
 }
 
-function downloadExcel(p){
+async function downloadExcel(p){
   if(!p)p=getCurrentPeriod();
   const pr=records.filter(r=>inPeriod(r.date,p));
   const userName2=localStorage.getItem('kintai_name')||'';
+
   const dateList=[];
-  const start=new Date(p.start+'T00:00:00');
-  const end=new Date(p.end+'T00:00:00');
-  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+  for(let d=new Date(p.start+'T00:00:00');d<=new Date(p.end+'T00:00:00');d.setDate(d.getDate()+1))
     dateList.push(d.toISOString().slice(0,10));
-  }
+
   const months={};
-  dateList.forEach(date=>{
-    const m=date.slice(0,7);
-    if(!months[m])months[m]=[];
-    months[m].push(date);
-  });
-  const XL=window.XLSX;
-  const wb=XL.utils.book_new();
-  const ws_data=[];
-  ws_data.push(['','勤　務　表','','','','','','','','','']);
-  ws_data.push(['','','','','','','',userName2+'　さん','','記入用','']);
-  ws_data.push(['','','','','出勤時間','退勤時間','休憩時間','','','勤務時間合計','通常勤務時間']);
-  ws_data.push(['','','','','','','午前','昼','午後','','']);
-  let dataStartRow=5,rowIdx=5;
+  dateList.forEach(date=>{const m=date.slice(0,7);if(!months[m])months[m]=[];months[m].push(date);});
+
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('勤務表');
+
+  // 列幅
+  ws.columns=[
+    {width:4},{width:8},{width:7},{width:4},{width:12},{width:12},
+    {width:7},{width:7},{width:7},{width:14},{width:14},{width:10},{width:14}
+  ];
+
+  // スタイル定義
+  const thin={style:'thin',color:{argb:'FF000000'}};
+  const borderAll={top:thin,left:thin,bottom:thin,right:thin};
+  const grayFill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};
+  const timeNumFmt='h:mm';
+
+  function timeToSerial(str){
+    if(!str)return null;
+    const [h,m]=(str||'').split(':').map(Number);
+    if(isNaN(h)||isNaN(m))return null;
+    return (h*60+m)/1440;
+  }
+
+  // ヘッダー行
+  ws.getRow(1).getCell(2).value='勤　務　表';
+  ws.getRow(1).getCell(2).font={bold:true,size:14};
+
+  ws.getRow(2).getCell(7).value=userName2+'　さん';
+  ws.getRow(2).getCell(10).value='記入用';
+
+  const h3=ws.getRow(3);
+  h3.getCell(5).value='出勤時間'; h3.getCell(5).border=borderAll;
+  h3.getCell(6).value='退勤時間'; h3.getCell(6).border=borderAll;
+  h3.getCell(7).value='休憩時間'; h3.getCell(7).border=borderAll;
+  h3.getCell(10).value='勤務時間合計'; h3.getCell(10).border=borderAll;
+  h3.getCell(11).value='通常勤務時間'; h3.getCell(11).border=borderAll;
+  ws.mergeCells('G3:I3');
+
+  const h4=ws.getRow(4);
+  h4.getCell(7).value='午前'; h4.getCell(7).border=borderAll;
+  h4.getCell(8).value='昼';   h4.getCell(8).border=borderAll;
+  h4.getCell(9).value='午後'; h4.getCell(9).border=borderAll;
+
+  // データ行
+  let dataStartRow=5, rowIdx=5;
+  const holidayRows=[];
+
   Object.keys(months).sort().forEach(month=>{
     const dates=months[month];
     const monthLabel=parseInt(month.slice(5))+'月';
+    let monthStartRow=rowIdx;
+
     dates.forEach((date,i)=>{
       const rec=pr.find(r=>r.date===date);
       const dayLabel=parseInt(date.slice(8))+'日';
       const holiday=isHoliday(date);
       const hasRecord=rec&&rec.in;
       const leave=rec?rec.leave||'':'';
-      // 休憩時間の決定
-      let bAm='0:10', bLunch='0:45', bPm='0:10';
-      if(holiday||(!hasRecord&&!leave)){
-        bAm=''; bLunch=''; bPm='';
-      } else if(leave==='all'){
-        bAm=''; bLunch=''; bPm='';
-      } else if(leave==='half_am'){
-        bAm=''; bLunch=''; bPm='0:10';
-      } else if(leave==='half_pm'){
-        bAm='0:10'; bLunch=''; bPm='';
-      } else if(leave==='3h_am'){
-        bAm=''; bLunch='0:45'; bPm='0:10';
-      } else if(leave==='3h_pm'){
-        bAm='0:10'; bLunch='0:45'; bPm='';
+
+      // 休憩時間
+      let bAm=null,bLunch=null,bPm=null;
+      if(!holiday&&(hasRecord||(leave&&leave!=='all'))){
+        bAm=timeToSerial('0:10'); bLunch=timeToSerial('0:45'); bPm=timeToSerial('0:10');
+        if(leave==='all'){bAm=null;bLunch=null;bPm=null;}
+        else if(leave==='half_am'){bAm=null;bLunch=null;}
+        else if(leave==='half_pm'){bLunch=null;bPm=null;}
+        else if(leave==='3h_am'){bAm=null;}
+        else if(leave==='3h_pm'){bPm=null;}
       }
-      // D列（稼働フラグ）：全休・休日以外は1
+
       const dFlag=(!holiday&&(hasRecord||(leave&&leave!=='all')))?1:'';
-      ws_data.push([
-        '',
-        i===0?monthLabel:'',
-        dayLabel,
-        dFlag,
-        hasRecord?rec.in:'',
-        hasRecord&&rec.out?rec.out:'',
-        bAm, bLunch, bPm,
-        `=F${rowIdx}-E${rowIdx}-G${rowIdx}-H${rowIdx}-I${rowIdx}`,
-        ''
-      ]);
+      const row=ws.getRow(rowIdx);
+
+      // B列（月ラベル）
+      if(i===0) row.getCell(2).value=monthLabel;
+      // C列（日）
+      row.getCell(3).value=dayLabel; row.getCell(3).border=borderAll;
+      // D列（稼働フラグ）
+      row.getCell(4).value=dFlag||''; row.getCell(4).border=borderAll;
+      // E列（出勤）
+      if(hasRecord&&rec.in){
+        row.getCell(5).value=timeToSerial(rec.in);
+        row.getCell(5).numFmt=timeNumFmt;
+      }
+      row.getCell(5).border=borderAll;
+      // F列（退勤）
+      if(hasRecord&&rec.out){
+        row.getCell(6).value=timeToSerial(rec.out);
+        row.getCell(6).numFmt=timeNumFmt;
+      }
+      row.getCell(6).border=borderAll;
+      // G〜I列（休憩）
+      if(bAm!==null){row.getCell(7).value=bAm;row.getCell(7).numFmt=timeNumFmt;}
+      row.getCell(7).border=borderAll;
+      if(bLunch!==null){row.getCell(8).value=bLunch;row.getCell(8).numFmt=timeNumFmt;}
+      row.getCell(8).border=borderAll;
+      if(bPm!==null){row.getCell(9).value=bPm;row.getCell(9).numFmt=timeNumFmt;}
+      row.getCell(9).border=borderAll;
+      // J列（勤務時間合計）
+      row.getCell(10).value={formula:`F${rowIdx}-E${rowIdx}-G${rowIdx}-H${rowIdx}-I${rowIdx}`};
+      row.getCell(10).numFmt='[h]:mm';
+      row.getCell(10).border=borderAll;
+      // K列
+      row.getCell(11).border=borderAll;
+
+      if(holiday) holidayRows.push(rowIdx);
       rowIdx++;
     });
+
+    // 月ラベルのマージ
+    const monthEndRow=rowIdx-1;
+    if(monthEndRow>=monthStartRow){
+      try{ws.mergeCells(`B${monthStartRow}:B${monthEndRow}`);}catch(e){}
+      ws.getCell(`B${monthStartRow}`).alignment={vertical:'middle',horizontal:'center'};
+      ws.getCell(`B${monthStartRow}`).border=borderAll;
+    }
   });
+
+  // 休日行グレー（C〜J列）
+  holidayRows.forEach(r=>{
+    for(let c=3;c<=10;c++){
+      ws.getRow(r).getCell(c).fill=grayFill;
+    }
+  });
+
+  // 集計行
   const totalRows=rowIdx-1;
-  ws_data.push(['','','','','','','①実労働時間合計','','',`=SUM(J${dataStartRow}:J${totalRows})`,'','自動計算',`=I${rowIdx+1}*475/60`]);
-  ws_data.push(['','','','','','','②法定労働時間合計','',`=SUM(D${dataStartRow}:D${totalRows})`,'','','時間換算',`=ROUNDDOWN(M${rowIdx},0)`]);
-  ws_data.push(['','','','','','','法定外労働時間合計','','①-②',`=J${rowIdx}-J${rowIdx+1}`,'','端数',`=M${rowIdx}-M${rowIdx+1}`]);
-  ws_data.push(['','','','','','','','','','','','分換算',`=60*M${rowIdx+2}`]);
-  const ws=XL.utils.aoa_to_sheet(ws_data);
-  ws['!cols']=[{wch:4},{wch:7},{wch:6},{wch:4},{wch:11},{wch:11},{wch:6},{wch:6},{wch:6},{wch:13},{wch:13},{wch:9},{wch:13}];
-  XL.utils.book_append_sheet(wb,ws,'勤務表');
+  const r1=ws.getRow(rowIdx);
+  r1.getCell(7).value='①実労働時間合計';
+  r1.getCell(10).value={formula:`SUM(J${dataStartRow}:J${totalRows})`};
+  r1.getCell(10).numFmt='[h]:mm'; r1.getCell(10).border=borderAll;
+  r1.getCell(12).value='自動計算';
+  r1.getCell(13).value={formula:`I${rowIdx+1}*475/60`};
+
+  const r2=ws.getRow(rowIdx+1);
+  r2.getCell(7).value='②法定労働時間合計';
+  r2.getCell(9).value={formula:`SUM(D${dataStartRow}:D${totalRows})`};
+  r2.getCell(9).border=borderAll;
+  r2.getCell(12).value='時間換算';
+  r2.getCell(13).value={formula:`ROUNDDOWN(M${rowIdx},0)`};
+
+  const r3=ws.getRow(rowIdx+2);
+  r3.getCell(7).value='法定外労働時間合計';
+  r3.getCell(9).value='①-②';
+  r3.getCell(10).value={formula:`J${rowIdx}-J${rowIdx+1}`};
+  r3.getCell(10).numFmt='[h]:mm'; r3.getCell(10).border=borderAll;
+  r3.getCell(12).value='端数';
+  r3.getCell(13).value={formula:`M${rowIdx}-M${rowIdx+1}`};
+
+  const r4=ws.getRow(rowIdx+3);
+  r4.getCell(12).value='分換算';
+  r4.getCell(13).value={formula:`60*M${rowIdx+2}`};
+
+  // ダウンロード
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
   const periodLabel=p.end.slice(0,7).replace('-','');
-  XL.writeFile(wb,`勤務表_${userName2}_${periodLabel}.xlsx`);
+  a.download=`勤務表_${userName2}_${periodLabel}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
   showToast('Excelをダウンロードしました');
 }
 </script>
