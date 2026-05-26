@@ -70,10 +70,10 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
 .ot-banner.plus{background:rgba(255,107,157,0.2);border-color:rgba(255,107,157,0.35);}
 .ot-banner.minus{background:rgba(74,222,128,0.15);border-color:rgba(74,222,128,0.3);}
 .ot-left{font-size:12px;color:var(--text-sub);}
-.ot-left.plus{color:#ffb3cc;}
+.ot-left.plus{color:#fb923c;}
 .ot-left.minus{color:#86efac;}
 .ot-right{font-size:28px;font-weight:200;color:#fff;font-variant-numeric:tabular-nums;}
-.ot-right.plus{color:#ff6b9d;}
+.ot-right.plus{color:#fb923c;font-weight:500;}
 .ot-right.minus{color:#4ade80;}
 .ot-sub{font-size:11px;color:var(--text-hint);margin-top:2px;}
 
@@ -90,7 +90,7 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
 .cumulative-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text-sub);margin-bottom:8px;}
 .cumulative-bar{height:8px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;display:flex;}
 .bar-work{height:100%;background:rgba(255,255,255,0.7);transition:width .4s;}
-.bar-leave{height:100%;background:rgba(255,107,157,0.7);transition:width .4s;}
+.bar-leave{height:100%;background:rgba(251,146,60,0.8);transition:width .4s;}
 .cumulative-legend{display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--text-sub);}
 .legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;}
 
@@ -112,7 +112,7 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
 .rec-times{font-size:14px;color:#fff;}
 .rec-detail{font-size:11px;color:var(--text-hint);margin-top:3px;display:flex;justify-content:space-between;}
 .rec-leave{font-size:11px;color:#ffb3cc;margin-top:2px;}
-.rec-ot-plus{color:#ff6b9d;}
+.rec-ot-plus{color:#fb923c;font-weight:600;}
 .rec-ot-minus{color:#4ade80;}
 .dot-in{color:#4ade80;}
 .dot-out{color:#ff6b9d;}
@@ -218,7 +218,7 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
       </div>
       <div class="cumulative-legend">
         <span><span class="legend-dot" style="background:#34C759"></span>実労働</span>
-        <span><span class="legend-dot" style="background:#FF3B30"></span>有給</span>
+        <span><span class="legend-dot" style="background:#fb923c"></span>有給</span>
       </div>
     </div>
 
@@ -587,13 +587,13 @@ function renderHistory(){
     const leaveStr=ls.days>0||ls.hours>0?`有給 ${ls.days>0?ls.days+'日':''}${ls.hours>0?' '+ls.hours+'h':''}`.trim():'';
     const div=document.createElement('div');div.className='hist-period';
     div.innerHTML=`<div class="hp-top"><div class="hp-label">${label}</div><div class="hp-ot ${otClass}">${hm(tot)}</div></div>
-      <div class="hp-sub"><span>出勤 ${pr.filter(r=>r.in).length}日</span><span>実労働 ${hm(tw)}</span><span>時間外 ${hm(tot)}</span>${leaveStr?`<span style="color:#FF3B30">${leaveStr}</span>`:''}</div>
+      <div class="hp-sub"><span>出勤 ${pr.filter(r=>r.in).length}日</span><span>実労働 ${hm(tw)}</span><span>時間外 ${hm(tot)}</span>${leaveStr?`<span style="color:#fb923c">${leaveStr}</span>`:''}</div>
       <div class="hp-detail" id="det-${pi}">
         ${pr.length===0?'<div style="font-size:12px;color:#8E8E93;padding:6px 0">記録なし</div>':
           pr.map(r=>{
             const idx=records.indexOf(r);const c=r.in?calcDay(r):calcLeaveOnly(r);
             const otClass2=c&&c.otMins>0?'plus':c&&c.otMins<0?'minus':'';
-            const leaveTag=r.leave?`<span style="color:#FF3B30;font-size:10px">${LEAVE_LABEL[r.leave]}</span>`:'';
+            const leaveTag=r.leave?`<span style="color:#fb923c;font-size:10px">${LEAVE_LABEL[r.leave]}</span>`:'';
             return `<div class="hp-rec" onclick="openEdit(${idx})">
               <span class="hp-rec-date">${r.date.slice(5).replace('-','/')}</span>
               <span class="hp-rec-work">${r.in?r.in:'--'}→${r.out?r.out:'--'} ${c?hm(c.totalMins):'--'}</span>
