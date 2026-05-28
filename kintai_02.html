@@ -963,7 +963,7 @@ async function downloadExcel(p){
     const lv=recW?recW.leave||'':'';
     return !isHoliday(date)&&((recW&&recW.in)||(lv&&lv!=='all'));
   }).length;
-  r2.getCell(10).value=workDaysCount*8/24;
+  r2.getCell(10).value=workDaysCount*475/60/24;
   r2.getCell(10).numFmt='[h]:mm'; r2.getCell(10).border=borderAll;
   r2.getCell(12).value='時間換算';
   r2.getCell(13).value={formula:`ROUNDDOWN(M${rowIdx},0)`};
@@ -971,7 +971,17 @@ async function downloadExcel(p){
   const r3=ws.getRow(rowIdx+2);
   r3.getCell(7).value='法定外労働時間合計';
   r3.getCell(9).value='①-②';
-  r3.getCell(10).value={formula:`J${rowIdx}-J${rowIdx+1}`};
+  // J37 = 実労働合計 - 法定労働時間合計（直接計算）
+  const realJ35=pr.filter(r=>r.in&&r.out).reduce((acc,r)=>{
+    const inM=toMins(r.in),outM=toMins(r.out);
+    if(!inM||!outM||outM<=inM)return acc;
+    const bks=[{s:600,e:610},{s:720,e:765},{s:900,e:910}];
+    let bm=0;
+    bks.forEach(b=>{const os=Math.max(inM,b.s),oe=Math.min(outM,b.e);if(oe>os)bm+=oe-os;});
+    return acc+Math.max(0,outM-inM-bm);
+  },0);
+  const realJ36=workDaysCount*475;
+  r3.getCell(10).value=(realJ35-realJ36)/60/24;
   r3.getCell(10).numFmt='[h]:mm'; r3.getCell(10).border=borderAll;
   r3.getCell(12).value='端数'; r3.getCell(12).fill=yellowFill;
   r3.getCell(13).value={formula:`M${rowIdx}-M${rowIdx+1}`}; r3.getCell(13).fill=yellowFill;
