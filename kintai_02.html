@@ -415,8 +415,8 @@ function calcDay(r){
     if(oe>os)bMins+=oe-os;
   });
   const totalMins=Math.max(0,outM-inM-bMins);
-  // 有給がある日は時間外計算スキップ
-  const otMins=r.leave?0:totalMins-DAILY_MINS;
+  const leaveMins=LEAVE_MINS[r.leave]||0;
+  const otMins=totalMins+leaveMins-DAILY_MINS;
   return{totalMins,otMins};
 }
 
