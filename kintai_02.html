@@ -282,6 +282,7 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
         <option value="2h">時間休2h</option>
         <option value="3h_am">時間休3h（午前）</option>
         <option value="3h_pm">時間休3h（午後）</option>
+        <option value="special">特別有給（特給）</option>
       </select>
     </div>
     <div class="modal-btns">
@@ -308,7 +309,9 @@ const LEAVE_MINS = {
   '3h_pm': 180,
   '1h': 60,
   '2h': 120,
-  '3h': 180
+  '3h': 180,
+  'special': DAILY_MINS
+};
 };
 const LEAVE_LABEL = {
   'all': '全日有給',
@@ -321,6 +324,8 @@ const LEAVE_LABEL = {
   '1h': '時間休1h',
   '2h': '時間休2h',
   '3h': '時間休3h'
+  'special': '特別有給'
+
 };
 
 // 期間ごとの所定労働日数
@@ -406,6 +411,10 @@ function inPeriod(d,p){return d>=p.start&&d<=p.end;}
 // 勤務時間計算
 function calcDay(r){
   if(!r.in||!r.out)return null;
+  // 全休・特給は丸1日の休み → 実働は有給分のみ・残業は0（打刻があっても計上しない）
+  if(r.leave==='all'||r.leave==='special'){
+    return {totalMins: LEAVE_MINS[r.leave]||0, otMins: 0};
+  }
   const inM=toMins(r.in),outM=toMins(r.out);
   if(outM<=inM)return null;
   const breaks=[{s:10*60,e:10*60+10},{s:12*60,e:12*60+45},{s:15*60,e:15*60+10}];
