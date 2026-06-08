@@ -279,7 +279,8 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
         <option value="half_am">午前半休</option>
         <option value="half_pm">午後半休</option>
         <option value="1h">時間休1h</option>
-        <option value="2h">時間休2h</option>
+        <option value="2h_am">午前2h休</option>
+        <option value="2h_pm">午後2h休</option>
         <option value="3h_am">時間休3h（午前）</option>
         <option value="3h_pm">時間休3h（午後）</option>
         <option value="special">特別有給（特給）</option>
@@ -300,16 +301,19 @@ body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-
 const BREAK_MINS = 65;
 const DAILY_MINS = 7 * 60 + 55; // 475分
 
-// 有給の分数換算
+// 有給の分数換算（クレジット = 475 − その日の定時）
+// half_am(定時245)→230 / half_pm(定時230)→245 / 2h_am(定時355)→120 / 2h_pm(定時365)→110 / 3h(定時305)→170 / 1h(定時415)→60
 const LEAVE_MINS = {
   'all': DAILY_MINS,  // 全日 = 7h55m
-  'half_am': 4 * 60,
-  'half_pm': 4 * 60,
-  '3h_am': 180,
-  '3h_pm': 180,
+  'half_am': 230,
+  'half_pm': 245,
+  '2h_am': 120,
+  '2h_pm': 110,
+  '3h_am': 170,
+  '3h_pm': 170,
   '1h': 60,
   '2h': 120,
-  '3h': 180,
+  '3h': 170,
   'special': DAILY_MINS
 };
 const LEAVE_LABEL = {
@@ -318,11 +322,11 @@ const LEAVE_LABEL = {
   'half_pm': '午後半休',
   '1h': '時間休1h',
   '2h': '時間休2h',
+  '2h_am': '午前2h休',
+  '2h_pm': '午後2h休',
+  '3h': '時間休3h',
   '3h_am': '時間休3h(午前)',
   '3h_pm': '時間休3h(午後)',
-  '1h': '時間休1h',
-  '2h': '時間休2h',
-  '3h': '時間休3h',
   'special': '特別有給'
 };
 
@@ -442,8 +446,8 @@ function calcLeaveStats(pr){
     if(r.leave==='all') days+=1;
     else if(r.leave==='half_am'||r.leave==='half_pm') days+=0.5;
     else if(r.leave==='1h') hours+=1;
-    else if(r.leave==='2h') hours+=2;
-    else if(r.leave==='3h_am'||r.leave==='3h_pm') hours+=3;
+    else if(r.leave==='2h'||r.leave==='2h_am'||r.leave==='2h_pm') hours+=2;
+    else if(r.leave==='3h'||r.leave==='3h_am'||r.leave==='3h_pm') hours+=3;
   });
   return{days,hours};
 }
@@ -571,6 +575,7 @@ function downloadCSV(p){
     else if(leave==='all'){bAm='';bLunch='';bPm='';}
     else if(leave==='half_am'){bAm='';bLunch='';bPm='0:10';}
     else if(leave==='half_pm'){bAm='0:10';bLunch='';bPm='';}
+    else if(leave==='2h_pm'){bAm='0:10';bLunch='0:45';bPm='';}
     else if(leave==='3h_am'){bAm='';bLunch='0:45';bPm='0:10';}
     else if(leave==='3h_pm'){bAm='0:10';bLunch='0:45';bPm='';}
     const dFlag=(!holiday&&(hasRecord||(leave&&leave!=='all')))?1:'';
@@ -892,6 +897,7 @@ async function downloadExcel(p){
       if(leave==='all'){bAm=null;bLunch=null;bPm=null;}
       else if(leave==='half_am'){bAm=null;bLunch=null;}
       else if(leave==='half_pm'){bLunch=null;bPm=null;}
+      else if(leave==='2h_pm'){bPm=null;}
       else if(leave==='3h_am'){bAm=null;}
       else if(leave==='3h_pm'){bPm=null;}
     }
