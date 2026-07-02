@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タイムリマインダー</title>
+<style>
+  :root{
+    --bg:#0f0f14;
+    --surface:#1a1a24;
+    --surface2:#22222f;
+    --accent:#1db954;
+    --accent-dim:#14803c;
+    --text:#f2f2f5;
+    --text-dim:#9a9aa8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Segoe UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .wrap{ width:100%; max-width:420px; }
+  h1{ font-size:18px; font-weight:600; margin:0 0 20px; }
+  .step{
+    background:var(--surface);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .step-num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--accent-dim);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    margin-right:8px;
+  }
+  .label{
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+  }
+  .presets{ display:flex; flex-direction:column; gap:8px; }
+  .preset-item{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    border-radius:10px;
+    border:1px solid #33333f;
+    background:var(--surface2);
+    transition:background .15s,border-color .15s;
+  }
+  .preset-item.active{
+    background:var(--accent-dim);
+    border-color:var(--accent);
+  }
+  .preset-time-btn{
+    flex:1;
+    text-align:left;
+    padding:10px 12px;
+    background:none;
+    border:none;
+    color:var(--text);
+    font-size:15px;
+    cursor:pointer;
+  }
+  .preset-item.active .preset-time-btn{
+    color:#fff;
+    font-weight:600;
+  }
+  .preset-icon-btn{
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    font-size:15px;
+    cursor:pointer;
+    padding:8px 10px;
+  }
+  .preset-icon-btn:hover{ color:var(--text); }
+  .edit-time-input{
+    flex:1;
+    padding:8px 10px;
+    border:none;
+    background:transparent;
+    color:var(--text);
+    font-size:15px;
+  }
+  .add-preset-btn{
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    border-radius:10px;
+    border:1px dashed #4a4a5a;
+    background:transparent;
+    color:var(--text-dim);
+    font-size:13px;
+    cursor:pointer;
+  }
+  .add-preset-btn:hover{ color:var(--text); border-color:var(--accent); }
+  .custom-btn{
+    width:100%;
+    padding:10px 12px;
+    margin-top:8px;
+    border-radius:10px;
+    border:1px solid #33333f;
+    background:var(--surface2);
+    color:var(--text);
+    font-size:15px;
+    text-align:left;
+    cursor:pointer;
+  }
+  .custom-btn.active{
+    background:var(--accent-dim);
+    border-color:var(--accent);
+    color:#fff;
+    font-weight:600;
+  }
+  .custom-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:12px;
+  }
+  input[type="time"], input[type="text"]{
+    flex:1;
+    padding:9px 10px;
+    border-radius:8px;
+    border:1px solid #33333f;
+    background:var(--surface2);
+    color:var(--text);
+    font-size:14px;
+  }
+  .field-row{
+    margin-bottom:12px;
+  }
+  .field-row:last-child{
+    margin-bottom:0;
+  }
+  .field-caption{
+    display:block;
+    font-size:12px;
+    color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .toggle-btn{
+    width:100%;
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    background:var(--accent);
+    color:#04170c;
+    transition:opacity .15s;
+  }
+  .toggle-btn:hover{ opacity:.9; }
+  .toggle-btn.on{
+    background:var(--surface2);
+    color:var(--text);
+    border:1px solid var(--accent);
+  }
+  .preview{
+    background:var(--surface);
+    border-radius:14px;
+    padding:24px 18px;
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .preview .cap{
+    font-size:12px;
+    font-weight:400;
+    color:var(--text-dim);
+    margin-bottom:10px;
+  }
+  .preview-lines{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .line-label{
+    font-size:15px;
+    color:var(--text-dim);
+  }
+  .line-time{
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  .note{
+    font-size:11px;
+    color:var(--text-dim);
+    margin-top:4px;
+    line-height:1.6;
+  }
+  /* PiPウィンドウ内表示（2段） */
+  .pip-body{
+    background:var(--bg);
+    margin:0;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:4%;
+  }
+  .pip-lines{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2%;
+    width:100%;
+  }
+  #pipLabelLine{
+    font-size:clamp(10px, min(4.5vw, 14vh), 56px);
+    color:var(--text-dim);
+    text-align:center;
+    line-height:1.2;
+  }
+  #pipTimeLine{
+    font-size:clamp(14px, min(9vw, 26vh), 120px);
+    font-weight:700;
+    color:var(--text);
+    text-align:center;
+    line-height:1.2;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>タイムリマインダー</h1>
+
+  <div class="step">
+    <div class="label"><span class="step-num">1</span>時刻を選ぶ</div>
+    <div class="presets" id="presetBtns"></div>
+    <button class="add-preset-btn" id="addPresetBtn">＋ 時刻を追加</button>
+    <button class="custom-btn" id="customBtn">任意</button>
+    <div class="custom-row" id="customRow" style="display:none;">
+      <input type="time" id="customTime" value="08:00">
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="label"><span class="step-num">2</span>表示する文言を編集（すべて任意）</div>
+
+    <div class="field-row">
+      <span class="field-caption">何のリマインダーか</span>
+      <input type="text" id="prefixLabelInput" value="今日の勤務" placeholder="例）今日の勤務">
+    </div>
+
+    <div class="field-row">
+      <span class="field-caption">時刻の前につける文字</span>
+      <input type="text" id="beforeTimeInput" value="" placeholder="空欄でもOK">
+    </div>
+
+    <div class="field-row">
+      <span class="field-caption">時刻の後につける文字（「から」「まで」など）</span>
+      <input type="text" id="afterTimeInput" value="〜" placeholder="例）から／まで／〜">
+    </div>
+  </div>
+
+  <div class="preview" id="previewCard">
+    <div class="cap">プレビュー</div>
+    <div class="preview-lines">
+      <div class="line-label" id="previewLabelLine">今日の勤務</div>
+      <div class="line-time" id="previewTimeLine">【08:00】〜</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="label"><span class="step-num">3</span>常時表示するか選ぶ</div>
+    <button class="toggle-btn" id="pipToggle">常時表示 ON（最前面に固定）</button>
+    <div class="note">
+      Windows の Chrome / Edge 用。ONにするとこの内容が小さなウィンドウとして常に最前面に表示されます。もう一度押す、またはそのウィンドウを閉じると非表示に戻ります。設定はこの端末に保存されます。
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'timeReminderV1';
+let presets = ['07:45', '08:00', '08:15', '08:30'];
+let startTime = '08:00';
+let isCustom = false;
+let prefixLabel = '今日の勤務';
+let beforeTime = '';
+let afterTime = '〜';
+
+function loadSaved(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if(Array.isArray(saved.presets) && saved.presets.length) presets = saved.presets;
+    if(saved.startTime) startTime = saved.startTime;
+    if(typeof saved.isCustom === 'boolean') isCustom = saved.isCustom;
+    if(typeof saved.prefixLabel === 'string') prefixLabel = saved.prefixLabel;
+    if(typeof saved.beforeTime === 'string') beforeTime = saved.beforeTime;
+    if(typeof saved.afterTime === 'string') afterTime = saved.afterTime;
+  }catch(e){}
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({presets, startTime, isCustom, prefixLabel, beforeTime, afterTime}));
+}
+
+const presetContainer = document.getElementById('presetBtns');
+const addPresetBtn = document.getElementById('addPresetBtn');
+const customBtn = document.getElementById('customBtn');
+const customRow = document.getElementById('customRow');
+const customTimeInput = document.getElementById('customTime');
+const prefixLabelInput = document.getElementById('prefixLabelInput');
+const beforeTimeInput = document.getElementById('beforeTimeInput');
+const afterTimeInput = document.getElementById('afterTimeInput');
+
+const previewLabelLine = document.getElementById('previewLabelLine');
+const previewTimeLine = document.getElementById('previewTimeLine');
+
+function getLines(){
+  return {
+    label: prefixLabel,
+    time: `${beforeTime}【${startTime}】${afterTime}`
+  };
+}
+
+let pipLabelEl = null;
+let pipTimeEl = null;
+
+function renderPreview(){
+  const { label, time } = getLines();
+
+  previewLabelLine.textContent = label;
+  previewLabelLine.style.display = label ? '' : 'none';
+  previewTimeLine.textContent = time;
+
+  if(pipLabelEl){
+    pipLabelEl.textContent = label;
+    pipLabelEl.style.display = label ? '' : 'none';
+  }
+  if(pipTimeEl) pipTimeEl.textContent = time;
+}
+
+function renderPresets(){
+  presetContainer.innerHTML = '';
+  presets.forEach((t, i)=>{
+    const item = document.createElement('div');
+    item.className = 'preset-item' + (!isCustom && startTime === t ? ' active' : '');
+    item.innerHTML = `
+      <button class="preset-time-btn" data-index="${i}">${t}</button>
+      <button class="preset-icon-btn edit-icon" data-index="${i}" title="時刻を編集">✎</button>
+      <button class="preset-icon-btn remove-icon" data-index="${i}" title="削除">×</button>
+    `;
+    presetContainer.appendChild(item);
+  });
+  customBtn.classList.toggle('active', isCustom);
+  customRow.style.display = isCustom ? 'flex' : 'none';
+}
+
+function openInlineEdit(idx){
+  const item = presetContainer.children[idx];
+  const oldValue = presets[idx];
+  item.innerHTML = `<input type="time" class="edit-time-input" value="${oldValue}">`;
+  const input = item.querySelector('input');
+  input.focus();
+  let done = false;
+  function commit(){
+    if(done) return;
+    done = true;
+    const v = input.value || oldValue;
+    if(!isCustom && startTime === oldValue) startTime = v;
+    presets[idx] = v;
+    save();
+    renderPresets();
+    renderPreview();
+  }
+  input.addEventListener('change', commit);
+  input.addEventListener('blur', commit, { once:true });
+}
+
+presetContainer.addEventListener('click', (e)=>{
+  const editBtn = e.target.closest('.edit-icon');
+  const removeBtn = e.target.closest('.remove-icon');
+  const timeBtn = e.target.closest('.preset-time-btn');
+
+  if(editBtn){
+    openInlineEdit(+editBtn.dataset.index);
+    return;
+  }
+  if(removeBtn){
+    if(presets.length <= 1){
+      alert('時刻は最低1つ残す必要があります。');
+      return;
+    }
+    const idx = +removeBtn.dataset.index;
+    const removed = presets[idx];
+    presets.splice(idx, 1);
+    if(!isCustom && startTime === removed){
+      startTime = presets[0];
+    }
+    save();
+    renderPresets();
+    renderPreview();
+    return;
+  }
+  if(timeBtn){
+    startTime = presets[+timeBtn.dataset.index];
+    isCustom = false;
+    save();
+    renderPresets();
+    renderPreview();
+    return;
+  }
+});
+
+addPresetBtn.addEventListener('click', ()=>{
+  let base = '09:00';
+  if(!presets.includes(base)){
+    presets.push(base);
+  } else {
+    let n = 1;
+    while(presets.includes(base)) { base = `09:${String(n).padStart(2,'0')}`; n++; if(n>59) break; }
+    presets.push(base);
+  }
+  save();
+  renderPresets();
+  openInlineEdit(presets.length - 1);
+});
+
+customBtn.addEventListener('click', ()=>{
+  isCustom = true;
+  startTime = customTimeInput.value || startTime;
+  save();
+  renderPresets();
+  renderPreview();
+});
+
+customTimeInput.addEventListener('change', ()=>{
+  startTime = customTimeInput.value;
+  save();
+  renderPreview();
+});
+
+prefixLabelInput.addEventListener('input', ()=>{
+  prefixLabel = prefixLabelInput.value || '';
+  save();
+  renderPreview();
+});
+
+beforeTimeInput.addEventListener('input', ()=>{
+  beforeTime = beforeTimeInput.value || '';
+  save();
+  renderPreview();
+});
+
+afterTimeInput.addEventListener('input', ()=>{
+  afterTime = afterTimeInput.value || '';
+  save();
+  renderPreview();
+});
+
+loadSaved();
+prefixLabelInput.value = prefixLabel;
+beforeTimeInput.value = beforeTime;
+afterTimeInput.value = afterTime;
+customTimeInput.value = isCustom ? startTime : customTimeInput.value;
+renderPresets();
+renderPreview();
+
+/* ===== Document Picture-in-Picture (常時表示) ===== */
+const pipToggle = document.getElementById('pipToggle');
+let pipWindow = null;
+
+async function copyStylesInto(doc){
+  [...document.styleSheets].forEach((styleSheet) => {
+    try {
+      const cssRules = [...styleSheet.cssRules].map(r => r.cssText).join('');
+      const style = document.createElement('style');
+      style.textContent = cssRules;
+      doc.head.appendChild(style);
+    } catch (e) {
+      if(styleSheet.href){
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = styleSheet.href;
+        doc.head.appendChild(link);
+      }
+    }
+  });
+}
+
+async function enterPip(){
+  if(!('documentPictureInPicture' in window)){
+    alert('お使いのブラウザは常時表示機能に対応していません。Windows版の Chrome または Edge の最新版でお試しください。');
+    return;
+  }
+  try{
+    pipWindow = await documentPictureInPicture.requestWindow({
+      width: 280,
+      height: 110
+    });
+  }catch(err){
+    alert('常時表示ウィンドウを開けませんでした。（ボタン操作から直接呼び出す必要があります）');
+    return;
+  }
+
+  await copyStylesInto(pipWindow.document);
+  pipWindow.document.body.classList.add('pip-body');
+
+  const wrap = pipWindow.document.createElement('div');
+  wrap.className = 'pip-lines';
+
+  const labelLine = pipWindow.document.createElement('div');
+  labelLine.id = 'pipLabelLine';
+
+  const timeLine = pipWindow.document.createElement('div');
+  timeLine.id = 'pipTimeLine';
+
+  wrap.appendChild(labelLine);
+  wrap.appendChild(timeLine);
+  pipWindow.document.body.appendChild(wrap);
+
+  pipLabelEl = labelLine;
+  pipTimeEl = timeLine;
+  renderPreview();
+
+  pipWindow.addEventListener('pagehide', () => {
+    pipWindow = null;
+    pipLabelEl = null;
+    pipTimeEl = null;
+    pipToggle.textContent = '常時表示 ON（最前面に固定）';
+    pipToggle.classList.remove('on');
+  }, { once:true });
+
+  pipToggle.textContent = '常時表示 OFF（元に戻す）';
+  pipToggle.classList.add('on');
+}
+
+function exitPip(){
+  if(pipWindow){
+    pipWindow.close();
+  }
+}
+
+pipToggle.addEventListener('click', ()=>{
+  if(pipWindow){
+    exitPip();
+  } else {
+    enterPip();
+  }
+});
+</script>
+</body>
+</html>
